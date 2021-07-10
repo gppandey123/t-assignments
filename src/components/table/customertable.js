@@ -16,6 +16,7 @@ import Typography from "@material-ui/core/Typography";
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import orderBy from 'lodash/orderBy';
+import Link from 'react-router-dom';
 import "./CustomerTable.css";
 
 const useStyles = makeStyles({
@@ -36,9 +37,8 @@ const CustomerTable = () => {
   const [Loading, setLoading] = useState(false);
   const [Toggle, setToggle] = useState(false);
   const [order, setOrder] = useState('asc');
-  const [sortingField , setsortingField] = useState('');
-  const [sortData , setSortData] = useState([]);
   
+
   useEffect(() => {
     axios("https://intense-tor-76305.herokuapp.com/merchants")
       .then((res) => {
@@ -100,7 +100,9 @@ const CustomerTable = () => {
                   page * rowsPerPage,
                   page * rowsPerPage + rowsPerPage
                 ).map((row) => {
+
                   return (
+                    <Link to ={`user/${row.id}`}>
                     <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                       <TableCell>
                         {row.firstname}
@@ -125,6 +127,7 @@ const CustomerTable = () => {
                         )}
                       </TableCell>
                     </TableRow>
+                    </Link>
                   );
                 })}
               </TableBody>
