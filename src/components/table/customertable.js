@@ -11,6 +11,9 @@ import TableRow from "@material-ui/core/TableRow";
 import Avatar from "@material-ui/core/Avatar";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import axios from "axios";
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
+import './CustomerTable.css';
 
 const useStyles = makeStyles({
   root: {
@@ -27,6 +30,7 @@ const CustomerTable = () => {
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [Customerdata, setCustomerData] = useState(null);
   const [Loading, setLoading] = useState(false);
+  const [Toggle, setToggle] = useState(false);
 
   useEffect(() => {
     axios("https://intense-tor-76305.herokuapp.com/merchants")
@@ -46,8 +50,17 @@ const CustomerTable = () => {
     setPage(0);
   };
 
+  const togglebid = () => {
+    setToggle((prev) => !prev);
+  };
+
   return (
     <>
+     <div className="toggle">
+        <Button variant="contained" color="primary" onClick={togglebid}>
+          Toggle bid
+        </Button>
+      </div>
       {Loading ? (
         <Paper className={classes.root}>
           <TableContainer className={classes.container}>
@@ -78,8 +91,17 @@ const CustomerTable = () => {
                         {row.hasPremium ? "Active" : "Inactive"}
                       </TableCell>
                       <TableCell align="right">
-                        Max-bid:{" "}
-                        {Math.max(...row.bids.map((bid) => bid.amount))}
+                      {Toggle ? (
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Min Bid:{" "}
+                            {Math.min(...row.bids.map((bid) => bid.amount))}
+                          </Typography>
+                        ) : (
+                          <Typography variant="subtitle1" color="textSecondary">
+                            Max Bid:{" "}
+                            {Math.max(...row.bids.map((bid) => bid.amount))}
+                          </Typography>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
