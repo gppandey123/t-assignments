@@ -13,7 +13,10 @@ import CircularProgress from "@material-ui/core/CircularProgress";
 import axios from "axios";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import './CustomerTable.css';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
+import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import orderBy from 'lodash/orderBy';
+import "./CustomerTable.css";
 
 const useStyles = makeStyles({
   root: {
@@ -24,6 +27,7 @@ const useStyles = makeStyles({
   },
 });
 
+
 const CustomerTable = () => {
   const classes = useStyles();
   const [page, setPage] = React.useState(0);
@@ -31,7 +35,10 @@ const CustomerTable = () => {
   const [Customerdata, setCustomerData] = useState(null);
   const [Loading, setLoading] = useState(false);
   const [Toggle, setToggle] = useState(false);
-
+  const [order, setOrder] = useState('asc');
+  const [sortingField , setsortingField] = useState('');
+  const [sortData , setSortData] = useState([]);
+  
   useEffect(() => {
     axios("https://intense-tor-76305.herokuapp.com/merchants")
       .then((res) => {
@@ -53,10 +60,21 @@ const CustomerTable = () => {
   const togglebid = () => {
     setToggle((prev) => !prev);
   };
+  
+  const handleSort = () => {
+     if(order === 'asc'){
+         console.log('sorting asc')
+         setOrder('desc');
+     }
+     else{
+        console.log('sorting desc')
+         setOrder('asc');
+     }
+  }
 
   return (
     <>
-     <div className="toggle">
+      <div className="toggle">
         <Button variant="contained" color="primary" onClick={togglebid}>
           Toggle bid
         </Button>
@@ -71,7 +89,10 @@ const CustomerTable = () => {
                   <TableCell>Email</TableCell>
                   <TableCell align="right">Phones</TableCell>
                   <TableCell align="right">Premium</TableCell>
-                  <TableCell align="right">Max/Min Bid</TableCell>
+                  <TableCell align="right" onClick ={() => handleSort()}>
+                  {order === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+                    Max/Min Bid
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -91,7 +112,7 @@ const CustomerTable = () => {
                         {row.hasPremium ? "Active" : "Inactive"}
                       </TableCell>
                       <TableCell align="right">
-                      {Toggle ? (
+                        {Toggle ? (
                           <Typography variant="subtitle1" color="textSecondary">
                             Min Bid:{" "}
                             {Math.min(...row.bids.map((bid) => bid.amount))}
