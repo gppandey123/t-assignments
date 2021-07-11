@@ -10,13 +10,14 @@ import TablePagination from "@material-ui/core/TablePagination";
 import TableRow from "@material-ui/core/TableRow";
 import Avatar from "@material-ui/core/Avatar";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import axios from "axios";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
-import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import orderBy from 'lodash/orderBy';
-import Link from 'react-router-dom';
+import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward";
+import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward";
+import { useSelector, useDispatch } from "react-redux";
+import { apiCall } from "../../container/actions";
+
+import { useHistory } from "react-router-dom";
 import "./CustomerTable.css";
 
 const useStyles = makeStyles({
@@ -28,24 +29,20 @@ const useStyles = makeStyles({
   },
 });
 
-
 const CustomerTable = () => {
   const classes = useStyles();
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [Customerdata, setCustomerData] = useState(null);
-  const [Loading, setLoading] = useState(false);
   const [Toggle, setToggle] = useState(false);
-  const [order, setOrder] = useState('asc');
-  
+  const [order, setOrder] = useState("asc");
+  const history = useHistory();
+
+  const data = useSelector((state) => state);
+  const dispatch = useDispatch();
+  console.log(data);
 
   useEffect(() => {
-    axios("https://intense-tor-76305.herokuapp.com/merchants")
-      .then((res) => {
-        setCustomerData(res.data);
-        setLoading(true);
-      })
-      .catch((err) => console.log("err", err));
+    dispatch(apiCall());
   }, []);
 
   const handleChangePage = (event, newPage) => {
@@ -60,17 +57,21 @@ const CustomerTable = () => {
   const togglebid = () => {
     setToggle((prev) => !prev);
   };
-  
+
+  const routeChange = (id) => {
+    let path = `/${id}`;
+    history.push(path);
+  };
+
   const handleSort = () => {
-     if(order === 'asc'){
-         console.log('sorting asc')
-         setOrder('desc');
-     }
-     else{
-        console.log('sorting desc')
-         setOrder('asc');
-     }
-  }
+    if (order === "asc") {
+      console.log("sorting asc");
+      setOrder("desc");
+    } else {
+      console.log("sorting desc");
+      setOrder("asc");
+    }
+  };
 
   return (
     <>
@@ -79,7 +80,7 @@ const CustomerTable = () => {
           Toggle bid
         </Button>
       </div>
-      {Loading ? (
+      {data.loading ? (
         <Paper className={classes.root}>
           <TableContainer className={classes.container}>
             <Table stickyHeader aria-label="sticky table">
@@ -89,54 +90,66 @@ const CustomerTable = () => {
                   <TableCell>Email</TableCell>
                   <TableCell align="right">Phones</TableCell>
                   <TableCell align="right">Premium</TableCell>
-                  <TableCell align="right" onClick ={() => handleSort()}>
-                  {order === 'asc' ? <ArrowUpwardIcon /> : <ArrowDownwardIcon />}
+                  <TableCell align="right" onClick={() => handleSort()}>
+                    {order === "asc" ? (
+                      <ArrowUpwardIcon />
+                    ) : (
+                      <ArrowDownwardIcon />
+                    )}
                     Max/Min Bid
                   </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {Customerdata.slice(
-                  page * rowsPerPage,
-                  page * rowsPerPage + rowsPerPage
-                ).map((row) => {
-
-                  return (
-                    <Link to ={`user/${row.id}`}>
-                    <TableRow hover role="checkbox" tabIndex={-1} key={row.id}>
-                      <TableCell>
-                        {row.firstname}
-                        <Avatar alt="Remy Sharp" src={row.avatarUrl} />
-                      </TableCell>
-                      <TableCell>{row.email}</TableCell>
-                      <TableCell align="right">{row.phone}</TableCell>
-                      <TableCell align="right">
-                        {row.hasPremium ? "Active" : "Inactive"}
-                      </TableCell>
-                      <TableCell align="right">
-                        {Toggle ? (
-                          <Typography variant="subtitle1" color="textSecondary">
-                            Min Bid:{" "}
-                            {Math.min(...row.bids.map((bid) => bid.amount))}
-                          </Typography>
-                        ) : (
-                          <Typography variant="subtitle1" color="textSecondary">
-                            Max Bid:{" "}
-                            {Math.max(...row.bids.map((bid) => bid.amount))}
-                          </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                    </Link>
-                  );
-                })}
+                {data.customers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => {
+                    return (
+                      <TableRow
+                        hover
+                        role="checkbox"
+                        tabIndex={-1}
+                        key={row.id}
+                        onClick={() => routeChange(row.id)}
+                      >
+                        <TableCell>
+                          {row.firstname}
+                          <Avatar alt="Remy Sharp" src={row.avatarUrl} />
+                        </TableCell>
+                        <TableCell>{row.email}</TableCell>
+                        <TableCell align="right">{row.phone}</TableCell>
+                        <TableCell align="right">
+                          {row.hasPremium ? "Active" : "Inactive"}
+                        </TableCell>
+                        <TableCell align="right">
+                          {Toggle ? (
+                            <Typography
+                              variant="subtitle1"
+                              color="textSecondary"
+                            >
+                              Min Bid:{" "}
+                              {Math.min(...row.bids.map((bid) => bid.amount))}
+                            </Typography>
+                          ) : (
+                            <Typography
+                              variant="subtitle1"
+                              color="textSecondary"
+                            >
+                              Max Bid:{" "}
+                              {Math.max(...row.bids.map((bid) => bid.amount))}
+                            </Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </TableContainer>
           <TablePagination
             rowsPerPageOptions={[5, 10, 15]}
             component="div"
-            count={Customerdata.length}
+            count={data.customers.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
